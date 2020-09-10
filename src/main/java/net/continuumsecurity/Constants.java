@@ -24,6 +24,12 @@ public class Constants {
     public static final String SECURITY_PASSWORD_FIELD_ID = "password_field_id";
     public static final String SECURITY_SUBMIT_BUTTON_ID = "submit_button_id";
     public static final String SECURITY_SPIDER_DEPTH = "SPIDER_DEPTH";
+    public static final String TEST_URL="TEST_URL";
+    public static final String LOGIN_URL="LOGIN_URL";
+    public static final String LOGOUT_URL="LOGOUT_URL";
+    public static final String IN_SCOPE="IN_SCOPE";
+    public static final String AJAX_SPIDER="AJAX_SPIDER";
+    public static final String LOGGED_INDICATOR="LOGGED_INDICATOR";
 
 
 }

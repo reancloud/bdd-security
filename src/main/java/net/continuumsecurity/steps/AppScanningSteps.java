@@ -30,6 +30,8 @@ import net.continuumsecurity.proxy.ContextModifier;
 import net.continuumsecurity.proxy.Spider;
 import net.continuumsecurity.proxy.ZAProxyScanner;
 import net.continuumsecurity.web.Application;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.zaproxy.clientapi.core.Alert;
 
@@ -116,19 +118,24 @@ public class AppScanningSteps {
     }
 
 
-    private void spider(String url) throws InterruptedException {
-        getSpider().spider(url, true, ZAP_CONTEXT_NAME);
-        int scanId = getSpider().getLastSpiderScanId();
-        int complete = getSpider().getSpiderProgress(scanId);
-        while (complete < 100) {
-            complete = getSpider().getSpiderProgress(scanId);
-            log.debug("Spidering of: " + url + " is " + complete + "% complete.");
-            Thread.sleep(2000);
-        }
-        for (String result : getSpider().getSpiderResults(scanId)) {
-            log.debug("Found Url: " + result);
-        }
-    }
+	private void spider(String url) throws InterruptedException {
+		if (Config.getInstance().isAjaxSpider()) {
+			getSpider().ajaxSpider(Config.getInstance().getLoginUrl(),Boolean.toString(Config.getInstance().getScopeValue()),ZAP_CONTEXT_NAME);
+		} else {
+
+			getSpider().spider(url, true, ZAP_CONTEXT_NAME);
+			int scanId = getSpider().getLastSpiderScanId();
+			int complete = getSpider().getSpiderProgress(scanId);
+			while (complete < 100) {
+				complete = getSpider().getSpiderProgress(scanId);
+				log.debug("Spidering of: " + url + " is " + complete + "% complete.");
+				Thread.sleep(2000);
+			}
+			for (String result : getSpider().getSpiderResults(scanId)) {
+				log.debug("Found Url: " + result);
+			}
+		}
+	}
 
     @Given("the passive scanner is enabled")
     public void enablePassiveScanner() {
@@ -284,25 +291,30 @@ public class AppScanningSteps {
                 equalTo(0));
     }
 
-    private void waitForSpiderToComplete() {
-        int status = 0;
-        int counter99 = 0; //hack to detect a ZAP spider that gets stuck on 99%
-        int scanId = getSpider().getLastSpiderScanId();
-        while (status < 100) {
-            status = getSpider().getSpiderProgress(scanId);
-            if (status == 99) {
-                counter99++;
-            }
-            if (counter99 > 10) {
-                break;
-            }
-            try {
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-    }
+	private void waitForSpiderToComplete() {
+		if (Config.getInstance().isAjaxSpider()) {
+			getSpider().waitForCompletion();
+
+		} else {
+			int status = 0;
+			int counter99 = 0; // hack to detect a ZAP spider that gets stuck on 99%
+			int scanId = getSpider().getLastSpiderScanId();
+			while (status < 100) {
+				status = getSpider().getSpiderProgress(scanId);
+				if (status == 99) {
+					counter99++;
+				}
+				if (counter99 > 10) {
+					break;
+				}
+				try {
+					Thread.sleep(2000);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
 
     private List<Alert> getAllAlertsByRiskRating(List<Alert> alerts, Alert.Risk rating) {
         List<Alert> results = new ArrayList<Alert>();
@@ -362,34 +374,43 @@ public class AppScanningSteps {
             log.debug("Navigating");
             ((INavigable) app).navigate();
             World.getInstance().setNavigated(true);
+            getScanner().setSessionActive();
         }
     }
 
-    @And("^the application is spidered$")
-    public void theApplicationIsSpidered() {
-        if (!World.getInstance().isSpidered()) {
-            for (String regex : Config.getInstance().getIgnoreUrls()) {
-                getSpider().excludeFromSpider(regex);
-            }
-            try {
-                getContext().setIncludeInContext(ZAP_CONTEXT_NAME, ".*"); //if URLs are not in context then they won't be spidered
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-	    int maxDepth = Config.getInstance().getMaxDepth();
-	    log.info("Maximum Spider depth set to "+maxDepth);
-            getSpider().setMaxDepth(maxDepth);
-            getSpider().setThreadCount(10);
-            for (String url : Config.getInstance().getSpiderUrls()) {
-                if (url.equalsIgnoreCase("baseurl")) url = Config.getInstance().getBaseUrl();
-                try {
-                    spider(url);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-            waitForSpiderToComplete();
-            World.getInstance().setSpidered(true);
-        }
-    }
+	@And("^the application is spidered$")
+	public void theApplicationIsSpidered() {
+		if (!World.getInstance().isSpidered()) {
+			for (String regex : Config.getInstance().getIgnoreUrls()) {
+				getSpider().excludeFromSpider(regex);
+			}
+			if (StringUtils.isNotEmpty(Config.getInstance().getLogoutUrl()))
+				getSpider().excludeFromSpider(".*" + Config.getInstance().getLogoutUrl() + ".*");
+			try {
+//				if (Config.getInstance().getScopeValue()) {
+//					getContext().setIncludeInContext(ZAP_CONTEXT_NAME, Config.getInstance().getBaseUrl() + ".*");
+//				} else {
+					getContext().setIncludeInContext(ZAP_CONTEXT_NAME, ".*"); // if URLs are not in context then they
+																				// won't be spidered
+//				}
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			int maxDepth = Config.getInstance().getMaxDepth();
+			log.info("Maximum Spider depth set to " + maxDepth);
+			getSpider().setMaxDepth(maxDepth);
+			getSpider().setThreadCount(10);
+			for (String url : Config.getInstance().getSpiderUrls()) {
+				if (url.equalsIgnoreCase("baseurl"))
+					url = Config.getInstance().getBaseUrl();
+				try {
+					spider(url);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+			waitForSpiderToComplete();
+			World.getInstance().setSpidered(true);
+		}
+	}
 }

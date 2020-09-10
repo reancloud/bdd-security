@@ -380,13 +380,46 @@ public class ZAProxyScanner implements ScanningProxy, Spider, Authentication, Co
 
     @Override
     public void spider(String url) {
-        try {
-            clientApi.spider
-                    .scan(url, null, null, null, null);
-        } catch (ClientApiException e) {
-            e.printStackTrace();
-        }
+		try {
+			clientApi.spider.scan(url, null, null, null, null);
+		} catch (ClientApiException e) {
+			System.out.println("Exception : " + e.getMessage());
+			e.printStackTrace();
+		}
     }
+
+	@Override
+	public void ajaxSpider(String url, String scope, String contextName) {
+		try {
+			// Start spidering the target
+			clientApi.ajaxSpider.setOptionBrowserId("chrome");
+			clientApi.ajaxSpider.setOptionRandomInputs(false);
+			System.out.println("Ajax Spider target : " + url);
+			clientApi.ajaxSpider.scan(url, null, null, null);
+
+		} catch (Exception e) {
+			System.out.println("Exception : " + e.getMessage());
+			e.printStackTrace();
+		}
+	}
+
+	public void waitForCompletion() {
+		try {
+			String status;
+			while (true) {
+				Thread.sleep(2000);
+				status = (((ApiResponseElement) clientApi.ajaxSpider.status()).getValue());
+				System.out.println("Spider status : " + status);
+				if (!("running".equals(status))) {
+					break;
+				}
+			}
+			System.out.println("Ajax Spider completed");
+		} catch (Exception e) {
+			System.out.println("Exception : " + e.getMessage());
+			e.printStackTrace();
+		}
+	}
 
     @Override
     public void spider(String url, boolean recurse, String contextName) {
@@ -1636,6 +1669,15 @@ public class ZAProxyScanner implements ScanningProxy, Spider, Authentication, Co
     private void createContext(String contextName) {
         try {
             clientApi.context.newContext(contextName);
+        } catch (ClientApiException e) {
+            e.printStackTrace();
+            throw new ProxyException(e);
+        }
+    }
+
+    public void setSessionActive() {
+        try {
+            clientApi.httpSessions.setActiveSession(System.getenv("LOGIN_URL"), "Session 0");
         } catch (ClientApiException e) {
             e.printStackTrace();
             throw new ProxyException(e);

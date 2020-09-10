@@ -114,7 +114,7 @@ public class Config {
     }
 
 	public String getBaseUrl() {
-		String url = System.getenv("TEST_URL");
+		String url = System.getenv(Constants.TEST_URL);
 		if (url == null || url.isEmpty())
 			return validateAndGetString("baseUrl");
 		else
@@ -122,8 +122,30 @@ public class Config {
 	}
 
 	public String getLoginUrl() {
-		String url = System.getenv("LOGIN_URL");
+		String url = System.getenv(Constants.LOGIN_URL);
 		return url;
+	}
+
+	public String getLogoutUrl() {
+		String url = System.getenv(Constants.LOGOUT_URL);
+		return url;
+	}
+
+	public String getLoggedInIndicatorValue() {
+		String str = System.getenv(Constants.LOGGED_INDICATOR);
+		return str;
+	}
+
+	public boolean getScopeValue() {
+		String str = System.getenv(Constants.IN_SCOPE);
+		boolean bool = Boolean.parseBoolean(str);
+		return bool;
+	}
+
+	public boolean isAjaxSpider() {
+		String str = System.getenv(Constants.AJAX_SPIDER);
+		boolean bool = Boolean.parseBoolean(str);
+		return bool;
 	}
 
     public String getDefaultDriver() {

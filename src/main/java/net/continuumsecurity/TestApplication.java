@@ -1,5 +1,6 @@
 package net.continuumsecurity;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.openqa.selenium.By;
 
@@ -41,11 +42,14 @@ public class TestApplication extends WebApplication implements INavigable, ILogi
 
 	@Override
 	public boolean isLoggedIn() {
-		if (driver.getPageSource().contains("Tasks")) {
-			return true;
-		} else {
-			return false;
-		}
+		String indicator = System.getenv(Constants.LOGGED_INDICATOR);
+			if (StringUtils.isNotEmpty(indicator) && driver.getPageSource().contains(indicator)) {
+				log.info("Logged in indicator "+indicator+" found");
+				return true;
+			} else {
+				log.info("Logged in indicator "+indicator+" not found");
+				return false;
+			}
 	}
 
 	public void navigate() {
@@ -60,6 +64,7 @@ public class TestApplication extends WebApplication implements INavigable, ILogi
 			openLoginPage();
 			log.info("Navigation to the application login page is done.");
 			login(credentials);
+			isLoggedIn();
 		}
 	}
 
