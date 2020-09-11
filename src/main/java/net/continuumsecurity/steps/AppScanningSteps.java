@@ -120,7 +120,7 @@ public class AppScanningSteps {
 
 	private void spider(String url) throws InterruptedException {
 		if (Config.getInstance().isAjaxSpider()) {
-			getSpider().ajaxSpider(Config.getInstance().getLoginUrl(),Boolean.toString(Config.getInstance().getScopeValue()),ZAP_CONTEXT_NAME);
+			getSpider().ajaxSpider(Config.getInstance().getLoginUrl(),ZAP_CONTEXT_NAME);
 		} else {
 
 			getSpider().spider(url, true, ZAP_CONTEXT_NAME);
@@ -387,12 +387,8 @@ public class AppScanningSteps {
 			if (StringUtils.isNotEmpty(Config.getInstance().getLogoutUrl()))
 				getSpider().excludeFromSpider(".*" + Config.getInstance().getLogoutUrl() + ".*");
 			try {
-//				if (Config.getInstance().getScopeValue()) {
-//					getContext().setIncludeInContext(ZAP_CONTEXT_NAME, Config.getInstance().getBaseUrl() + ".*");
-//				} else {
 					getContext().setIncludeInContext(ZAP_CONTEXT_NAME, ".*"); // if URLs are not in context then they
 																				// won't be spidered
-//				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			}

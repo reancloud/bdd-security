@@ -17,5 +17,5 @@ public interface Spider {
     public void setPostForms(boolean post);
     public void setThreadCount(int threads);
 	public void waitForCompletion();
-	public void ajaxSpider(String url,String scope, String contextName);
+	public void ajaxSpider(String url,String contextName);
 }
