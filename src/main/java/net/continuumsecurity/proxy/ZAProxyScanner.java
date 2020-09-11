@@ -575,6 +575,30 @@ public class ZAProxyScanner implements ScanningProxy, Spider, Authentication, Co
         return results;
     }
 
+	@Override
+	public List<String> getAjaxSpiderResults() {
+
+		List<String> results = new ArrayList<String>();
+		try {
+			Map<String, ApiResponse> ajaxSpiderResponse = ((ApiResponseSet) clientApi.ajaxSpider.fullResults())
+					.getValuesMap();
+			for (String str : ajaxSpiderResponse.keySet()) {
+				List<ApiResponse> response = ((ApiResponseList) ajaxSpiderResponse.get(str)).getItems();
+				for (ApiResponse resp : response) {
+					Map<String, ApiResponse> respSet = ((ApiResponseSet) resp).getValuesMap();
+					ApiResponse url = respSet.get("url");
+					results.add(url.toString());
+
+				}
+			}
+		} catch (ClientApiException e) {
+			e.printStackTrace();
+			throw new ProxyException(e);
+		}
+
+		return results;
+	}
+
     /**
      * Shuts down ZAP.
      *

@@ -121,8 +121,11 @@ public class AppScanningSteps {
 	private void spider(String url) throws InterruptedException {
 		if (Config.getInstance().isAjaxSpider()) {
 			getSpider().ajaxSpider(Config.getInstance().getLoginUrl(),ZAP_CONTEXT_NAME);
+			getSpider().waitForCompletion();
+			for (String result : getSpider().getAjaxSpiderResults()) {
+				log.debug("Found Url: " + result);
+			}
 		} else {
-
 			getSpider().spider(url, true, ZAP_CONTEXT_NAME);
 			int scanId = getSpider().getLastSpiderScanId();
 			int complete = getSpider().getSpiderProgress(scanId);

@@ -18,4 +18,5 @@ public interface Spider {
     public void setThreadCount(int threads);
 	public void waitForCompletion();
 	public void ajaxSpider(String url,String contextName);
+	List<String> getAjaxSpiderResults();
 }
