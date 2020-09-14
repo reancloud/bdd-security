@@ -27,7 +27,6 @@ public class Constants {
     public static final String TEST_URL="TEST_URL";
     public static final String LOGIN_URL="LOGIN_URL";
     public static final String LOGOUT_URL="LOGOUT_URL";
-    public static final String IN_SCOPE="IN_SCOPE";
     public static final String AJAX_SPIDER="AJAX_SPIDER";
     public static final String LOGGED_INDICATOR="LOGGED_INDICATOR";
 

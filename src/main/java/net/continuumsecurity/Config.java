@@ -136,12 +136,6 @@ public class Config {
 		return str;
 	}
 
-	public boolean getScopeValue() {
-		String str = System.getenv(Constants.IN_SCOPE);
-		boolean bool = Boolean.parseBoolean(str);
-		return bool;
-	}
-
 	public boolean isAjaxSpider() {
 		String str = System.getenv(Constants.AJAX_SPIDER);
 		boolean bool = Boolean.parseBoolean(str);
