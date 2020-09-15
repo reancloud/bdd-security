@@ -166,7 +166,7 @@ public class DriverFactory {
             capabilities = new DesiredCapabilities();
         }
         capabilities.setCapability(FirefoxDriver.PROFILE, myProfile);
-        System.setProperty("webdriver.gecko.driver", Config.getInstance().getDefaultDriverPath());
+//        System.setProperty("webdriver.gecko.driver", Config.getInstance().getDefaultDriverPath());
         return new FirefoxDriver(capabilities);
     }
 
