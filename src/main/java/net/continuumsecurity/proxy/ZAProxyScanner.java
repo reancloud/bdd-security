@@ -392,7 +392,7 @@ public class ZAProxyScanner implements ScanningProxy, Spider, Authentication, Co
 	public void ajaxSpider(String url,String contextName) {
 		try {
 			// Start spidering the target
-			clientApi.ajaxSpider.setOptionBrowserId("chrome");
+			clientApi.ajaxSpider.setOptionBrowserId(System.getenv("BROWSER").toLowerCase());
 			clientApi.ajaxSpider.setOptionRandomInputs(false);
 			System.out.println("Ajax Spider target : " + url);
 			clientApi.ajaxSpider.scan(url, null, contextName, null);
