@@ -16,5 +16,7 @@ public interface Spider {
     public void setMaxDepth(int depth);
     public void setPostForms(boolean post);
     public void setThreadCount(int threads);
-
+	public void waitForCompletion();
+	public void ajaxSpider(String url,String contextName);
+	List<String> getAjaxSpiderResults();
 }
