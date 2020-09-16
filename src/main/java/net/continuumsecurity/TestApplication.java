@@ -42,7 +42,7 @@ public class TestApplication extends WebApplication implements INavigable, ILogi
 
 	@Override
 	public boolean isLoggedIn() {
-		String indicator = System.getenv(Constants.LOGGED_INDICATOR);
+		String indicator = System.getenv(Constants.LOGGED_IN_INDICATOR);
 			if (StringUtils.isNotEmpty(indicator) && driver.getPageSource().contains(indicator)) {
 				log.info("Logged in indicator "+indicator+" found");
 				return true;

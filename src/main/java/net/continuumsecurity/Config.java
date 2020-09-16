@@ -132,7 +132,7 @@ public class Config {
 	}
 
 	public String getLoggedInIndicatorValue() {
-		String str = System.getenv(Constants.LOGGED_INDICATOR);
+		String str = System.getenv(Constants.LOGGED_IN_INDICATOR);
 		return str;
 	}
 

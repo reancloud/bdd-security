@@ -28,7 +28,7 @@ public class Constants {
     public static final String LOGIN_URL="LOGIN_URL";
     public static final String LOGOUT_URL="LOGOUT_URL";
     public static final String AJAX_SPIDER="AJAX_SPIDER";
-    public static final String LOGGED_INDICATOR="LOGGED_INDICATOR";
+    public static final String LOGGED_IN_INDICATOR="LOGGED_IN_INDICATOR";
 
 
 }
