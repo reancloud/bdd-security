@@ -380,13 +380,46 @@ public class ZAProxyScanner implements ScanningProxy, Spider, Authentication, Co
 
     @Override
     public void spider(String url) {
-        try {
-            clientApi.spider
-                    .scan(url, null, null, null, null);
-        } catch (ClientApiException e) {
-            e.printStackTrace();
-        }
+		try {
+			clientApi.spider.scan(url, null, null, null, null);
+		} catch (ClientApiException e) {
+			System.out.println("Exception : " + e.getMessage());
+			e.printStackTrace();
+		}
     }
+
+	@Override
+	public void ajaxSpider(String url,String contextName) {
+		try {
+			// Start spidering the target
+			clientApi.ajaxSpider.setOptionBrowserId(System.getenv("BROWSER").toLowerCase());
+			clientApi.ajaxSpider.setOptionRandomInputs(false);
+			System.out.println("Ajax Spider target : " + url);
+			clientApi.ajaxSpider.scan(url, null, contextName, null);
+
+		} catch (Exception e) {
+			System.out.println("Exception : " + e.getMessage());
+			e.printStackTrace();
+		}
+	}
+
+	public void waitForCompletion() {
+		try {
+			String status;
+			while (true) {
+				Thread.sleep(2000);
+				status = (((ApiResponseElement) clientApi.ajaxSpider.status()).getValue());
+				System.out.println("Spider status : " + status);
+				if (!("running".equals(status))) {
+					break;
+				}
+			}
+			System.out.println("Ajax Spider completed");
+		} catch (Exception e) {
+			System.out.println("Exception : " + e.getMessage());
+			e.printStackTrace();
+		}
+	}
 
     @Override
     public void spider(String url, boolean recurse, String contextName) {
@@ -541,6 +574,30 @@ public class ZAProxyScanner implements ScanningProxy, Spider, Authentication, Co
 
         return results;
     }
+
+	@Override
+	public List<String> getAjaxSpiderResults() {
+
+		List<String> results = new ArrayList<String>();
+		try {
+			Map<String, ApiResponse> ajaxSpiderResponse = ((ApiResponseSet) clientApi.ajaxSpider.fullResults())
+					.getValuesMap();
+			for (String str : ajaxSpiderResponse.keySet()) {
+				List<ApiResponse> response = ((ApiResponseList) ajaxSpiderResponse.get(str)).getItems();
+				for (ApiResponse resp : response) {
+					Map<String, ApiResponse> respSet = ((ApiResponseSet) resp).getValuesMap();
+					ApiResponse url = respSet.get("url");
+					results.add(url.toString());
+
+				}
+			}
+		} catch (ClientApiException e) {
+			e.printStackTrace();
+			throw new ProxyException(e);
+		}
+
+		return results;
+	}
 
     /**
      * Shuts down ZAP.
@@ -1624,8 +1681,8 @@ public class ZAProxyScanner implements ScanningProxy, Spider, Authentication, Co
             clientApi.context.includeInContext(contextName, regex);
         } catch (ClientApiException e) {
             if ("does_not_exist".equalsIgnoreCase(e.getCode())) {
-                createContext(contextName);
-                setIncludeInContext(contextName, regex);
+				createContext(contextName, true);
+				setIncludeInContext(contextName, regex);
             } else {
                 e.printStackTrace();
                 throw new ProxyException(e);
@@ -1633,9 +1690,9 @@ public class ZAProxyScanner implements ScanningProxy, Spider, Authentication, Co
         }
     }
 
-    private void createContext(String contextName) {
+    public void setSessionActive() {
         try {
-            clientApi.context.newContext(contextName);
+            clientApi.httpSessions.setActiveSession(System.getenv("LOGIN_URL"), "Session 0");
         } catch (ClientApiException e) {
             e.printStackTrace();
             throw new ProxyException(e);

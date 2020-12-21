@@ -1,21 +1,26 @@
 package net.continuumsecurity;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
+import org.openqa.selenium.By;
+
 import net.continuumsecurity.behaviour.ILogin;
 import net.continuumsecurity.behaviour.ILogout;
 import net.continuumsecurity.behaviour.INavigable;
 import net.continuumsecurity.web.WebApplication;
 
-import org.openqa.selenium.By;
-
 public class TestApplication extends WebApplication implements INavigable, ILogin, ILogout {
+	Logger log = Logger.getLogger(TestApplication.class);
 
 	@Override
 	public void openLoginPage() {
-		driver.get(Config.getInstance().getBaseUrl());
+		driver.get(Config.getInstance().getLoginUrl());
 	}
 
 	@Override
 	public void login(Credentials credentials) {
+		log.info("Waiting for successful login.");
+
 		UserPassCredentials creds = new UserPassCredentials(credentials);
 		String username_field = System.getenv(Constants.SECURITY_USERNAME_FIELD_ID);
 		if (username_field != null && username_field.trim().length() > 0) {
@@ -31,15 +36,20 @@ public class TestApplication extends WebApplication implements INavigable, ILogi
 		String submit_button = System.getenv(Constants.SECURITY_SUBMIT_BUTTON_ID);
 		if (submit_button != null && submit_button.trim().length() > 0)
 			driver.findElement(By.xpath(submit_button)).click();
+		log.info("User logged in successfully with user name : " + creds.getUsername());
+
 	}
 
 	@Override
 	public boolean isLoggedIn() {
-		if (driver.getPageSource().contains("Tasks")) {
-			return true;
-		} else {
-			return false;
-		}
+		String indicator = System.getenv(Constants.LOGGED_IN_INDICATOR);
+			if (StringUtils.isNotEmpty(indicator) && driver.getPageSource().contains(indicator)) {
+				log.info("Logged in indicator "+indicator+" found");
+				return true;
+			} else {
+				log.info("Logged in indicator "+indicator+" not found");
+				return false;
+			}
 	}
 
 	public void navigate() {
@@ -47,10 +57,14 @@ public class TestApplication extends WebApplication implements INavigable, ILogi
 		String password = System.getenv(Constants.SECURITY_PASSWORD);
 		UserPassCredentials credentials = new UserPassCredentials(username, password);
 		if (username == null || username.isEmpty() || password == null || password.isEmpty()) {
+			log.info("Navigating to the application without login.");
 			driver.get(Config.getInstance().getBaseUrl());
 		} else {
+			log.info("Navigating to the application login page.");
 			openLoginPage();
+			log.info("Navigation to the application login page is done.");
 			login(credentials);
+			isLoggedIn();
 		}
 	}
 
