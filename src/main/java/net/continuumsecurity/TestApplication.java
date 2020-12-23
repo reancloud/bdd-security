@@ -56,7 +56,7 @@ public class TestApplication extends WebApplication implements INavigable, ILogi
 		String username = System.getenv(Constants.SECURITY_USERNAME);
 		String password = System.getenv(Constants.SECURITY_PASSWORD);
 		UserPassCredentials credentials = new UserPassCredentials(username, password);
-		if (username != null && !username.isEmpty() && password != null && !password.isEmpty()) {
+		if (username == null || username.isEmpty() && password == null || password.isEmpty()) {
 			log.info("Navigating to the application without login.");
 			driver.get(Config.getInstance().getBaseUrl());
 		} else {
