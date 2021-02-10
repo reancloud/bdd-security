@@ -23,7 +23,6 @@ import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 import net.continuumsecurity.Config;
-import net.continuumsecurity.Constants;
 import net.continuumsecurity.UnexpectedContentException;
 import net.continuumsecurity.ZAPFalsePositive;
 import net.continuumsecurity.behaviour.INavigable;
@@ -37,6 +36,8 @@ import org.apache.log4j.Logger;
 import org.zaproxy.clientapi.core.Alert;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -52,7 +53,10 @@ public class AppScanningSteps {
     Application app;
     List<Alert> alerts = new ArrayList<Alert>();
     String scannerIds = null;
-    private final static String ZAP_CONTEXT_NAME= "Default Context";
+    private static final String ZAP_CONTEXT_NAME= "Default Context";
+    private static final String contextId = "1";
+
+    private String userId = "";
 
     public AppScanningSteps() {
         app = Config.getInstance().createApp();
@@ -370,19 +374,36 @@ public class AppScanningSteps {
     }
 
     @And("^the application is navigated$")
-    public void navigateAppIfNotAlreadyNavigated() {
+    public void navigateAppIfNotAlreadyNavigated() throws UnsupportedEncodingException {
         if (!World.getInstance().isNavigated()) {
             if (!(app instanceof INavigable))
                 throw new RuntimeException("The application must implement the 'INavigable' interface to be navigable");
             app.enableHttpLoggingClient();
             log.debug("Navigating");
-            ((INavigable) app).navigate();
-            World.getInstance().setNavigated(true);
-			String username = System.getenv(Constants.SECURITY_USERNAME);
-			String password = System.getenv(Constants.SECURITY_PASSWORD);
-			if (username != null && !username.isEmpty() && password != null && !password.isEmpty()) {
-				getScanner().setSessionActive();
-			}
+//            getScanner().loadScript("auth-dvwa.js", "authentication", "Oracle Nashorn", "/tmp/auth-dvwa.js",null);
+            String postData = "username={%username%}&password={%password%}" + "&Login=Login&user_token={%user_token%}";
+            String postDataEncode = URLEncoder.encode(postData, "UTF-8");
+            String sb = ("scriptName=auth-dvwa.js&Login_URL=http://192.168.43.190/login.php&CSRF_Field=user_token&")
+                    .concat("POST_Data=").concat(postDataEncode);
+            getScanner().setAuthenticationMethod(contextId, "scriptBasedAuthentication", sb.toString());
+            String user = "Admin";
+            String username = "admin";
+            String password = "password";
+            userId = getScanner().newUser(contextId, user);
+            StringBuilder userAuthConfig = new StringBuilder();
+            userAuthConfig.append("Username=").append(URLEncoder.encode(username, "UTF-8"));
+            userAuthConfig.append("&Password=").append(URLEncoder.encode(password, "UTF-8"));
+            getScanner().setAuthenticationCredentials(contextId, userId, userAuthConfig.toString());
+            getScanner().setUserEnabled(contextId, userId, true);
+            getScanner().setForcedUser(contextId, userId);
+            getScanner().setForcedUserModeEnabled(true);
+//            ((INavigable) app).navigate();
+//            World.getInstance().setNavigated(true);
+//			String username = System.getenv(Constants.SECURITY_USERNAME);
+//			String password = System.getenv(Constants.SECURITY_PASSWORD);
+//			if (username != null && !username.isEmpty() && password != null && !password.isEmpty()) {
+//				getScanner().setSessionActive();
+//			}
 
         }
     }
@@ -398,6 +419,13 @@ public class AppScanningSteps {
 			try {
 					getContext().setIncludeInContext(ZAP_CONTEXT_NAME, ".*"); // if URLs are not in context then they
 																				// won't be spidered
+					getContext().setIncludeInContext(ZAP_CONTEXT_NAME, "http://192.168.43.190/*"); // if URLs are not in context then they
+//					getScanner().setExcludeInContext(ZAP_CONTEXT_NAME, "\\Qhttp://192.168.43.190/login.php\\E");
+					getScanner().setExcludeInContext(ZAP_CONTEXT_NAME, "\\Qhttp://192.168.43.190/logout.php\\E");
+					getScanner().setExcludeInContext(ZAP_CONTEXT_NAME, "\\Qhttp://192.168.43.190/setup.php\\E");
+					getScanner().setExcludeInContext(ZAP_CONTEXT_NAME, "\\Qhttp://192.168.43.190/security.php\\E");
+					getScanner().setExcludeInContext(ZAP_CONTEXT_NAME, "\\Qhttp://192.168.43.190/instructions.php\\E");
+
 			} catch (Exception e) {
 				e.printStackTrace();
 			}

@@ -393,9 +393,9 @@ public class ZAProxyScanner implements ScanningProxy, Spider, Authentication, Co
 		try {
 			// Start spidering the target
 			clientApi.ajaxSpider.setOptionBrowserId(System.getenv("BROWSER").toLowerCase());
-			clientApi.ajaxSpider.setOptionRandomInputs(false);
+			clientApi.ajaxSpider.setOptionRandomInputs(true);
 			System.out.println("Ajax Spider target : " + url);
-			clientApi.ajaxSpider.scan(url, null, contextName, null);
+			clientApi.ajaxSpider.scanAsUser(contextName, "Admin", "http://192.168.43.190", null);
 
 		} catch (Exception e) {
 			System.out.println("Exception : " + e.getMessage());
@@ -1679,6 +1679,21 @@ public class ZAProxyScanner implements ScanningProxy, Spider, Authentication, Co
     public void setIncludeInContext(String contextName, String regex) {
         try {
             clientApi.context.includeInContext(contextName, regex);
+        } catch (ClientApiException e) {
+            if ("does_not_exist".equalsIgnoreCase(e.getCode())) {
+				createContext(contextName, true);
+				setIncludeInContext(contextName, regex);
+            } else {
+                e.printStackTrace();
+                throw new ProxyException(e);
+            }
+        }
+    }
+    
+    @Override
+    public void setExcludeInContext(String contextName, String regex) {
+        try {
+            clientApi.context.excludeFromContext(contextName, regex);
         } catch (ClientApiException e) {
             if ("does_not_exist".equalsIgnoreCase(e.getCode())) {
 				createContext(contextName, true);
